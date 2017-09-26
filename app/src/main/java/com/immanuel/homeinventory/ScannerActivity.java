@@ -5,19 +5,24 @@ import android.hardware.Camera;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.hardware.Camera.CameraInfo;
+import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.widget.EditText;
+
+import java.util.List;
 
 @SuppressWarnings("deprecation")
 public class ScannerActivity extends AppCompatActivity implements SurfaceHolder.Callback {
 
     public static final String CODE_KEY = "com.immanuel.homeinventory.CODE";
 
-    Camera camera;
-    SurfaceView surfaceView;
-    SurfaceHolder surfaceHolder;
+    private Camera camera;
+    private SurfaceView surfaceView;
+    private SurfaceHolder surfaceHolder;
+    private int cameraId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,17 +52,25 @@ public class ScannerActivity extends AppCompatActivity implements SurfaceHolder.
 
     public void surfaceCreated(SurfaceHolder holder) {
         try {
-            camera = Camera.open();
+            // Get the first rear-facing camera
+            cameraId = 0;
+            int numCameras = Camera.getNumberOfCameras();
+            while(cameraId < numCameras){
+                CameraInfo cameraInfo = new CameraInfo();
+                Camera.getCameraInfo(cameraId, cameraInfo);
+                if (cameraInfo.facing == CameraInfo.CAMERA_FACING_BACK) {
+                    break;
+                }
+                cameraId++;
+            }
+            camera = Camera.open(cameraId);
         } catch (RuntimeException e) {
+            // TODO: Handle caase when camera cannot be opened
             System.err.println(e);
             return;
         }
-        Camera.Parameters param;
-        param = camera.getParameters();
 
-        // TODO: check preview size correctly
-        param.setPreviewSize(352, 288);
-        camera.setParameters(param);
+        /*
         try {
             camera.setPreviewDisplay(surfaceHolder);
             camera.startPreview();
@@ -65,23 +78,40 @@ public class ScannerActivity extends AppCompatActivity implements SurfaceHolder.
             System.err.println(e);
             return;
         }
+        */
     }
     public void surfaceChanged(SurfaceHolder holder, int format, int w, int h) {
         // Now that the size is known, set up the camera parameters and begin
         // the preview.
-        refreshCamera();
-    }
 
-    public void refreshCamera() {
         if (surfaceHolder.getSurface() == null) {
             return;
         }
+
         try {
             camera.stopPreview();
         } catch (Exception e) {
             System.err.println(e);
             return;
         }
+
+        CameraInfo info = new CameraInfo();
+        Camera.getCameraInfo(cameraId, info);
+        int rotation = this.getWindowManager().getDefaultDisplay()
+                .getRotation();
+        int degrees = 0;
+        switch (rotation) {
+            case Surface.ROTATION_0: degrees = 0; break;
+            case Surface.ROTATION_90: degrees = 90; break;
+            case Surface.ROTATION_180: degrees = 180; break;
+            case Surface.ROTATION_270: degrees = 270; break;
+        }
+        // Assume rear facing
+        int result = (info.orientation - degrees + 360) % 360;
+        camera.setDisplayOrientation(result);
+
+        // TODO: Set preview size after figuring out the optimal from available list
+
         try {
             camera.setPreviewDisplay(surfaceHolder);
             camera.startPreview();
