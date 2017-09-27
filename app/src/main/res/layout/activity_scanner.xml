@@ -30,16 +30,18 @@
         app:layout_constraintTop_toTopOf="parent"
         android:layout_marginStart="16dp" />
 
-    <SurfaceView
-        android:id="@+id/surfaceView2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="32dp"
-        android:layout_marginRight="32dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="32dp"
+    <FrameLayout
+        android:id="@+id/camera_preview"
+        android:layout_width="0dp"
+        android:layout_height="587dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginTop="16dp"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editText2" />
+        app:layout_constraintTop_toBottomOf="@+id/editText2"
+        app:layout_constraintHorizontal_bias="0.0">
+
+    </FrameLayout>
 
 </android.support.constraint.ConstraintLayout>
