@@ -2,18 +2,26 @@ package com.immanuel.homeinventory;
 
 import android.content.Intent;
 import android.hardware.Camera;
+import android.hardware.Camera.CameraInfo;
+import android.hardware.Camera.PreviewCallback;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.hardware.Camera.CameraInfo;
-import android.view.Surface;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 
+import com.google.zxing.BinaryBitmap;
+import com.google.zxing.DecodeHintType;
+import com.google.zxing.MultiFormatReader;
+import com.google.zxing.PlanarYUVLuminanceSource;
+import com.google.zxing.ReaderException;
+import com.google.zxing.Result;
+import com.google.zxing.common.HybridBinarizer;
+
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 
 @SuppressWarnings("deprecation")
 public class ScannerActivity extends AppCompatActivity {
@@ -24,11 +32,13 @@ public class ScannerActivity extends AppCompatActivity {
     private Camera mCamera;
     private CameraPreview mPreview;
     private FrameLayout mFrameLayout;
+    private PreviewCallback mPreviewCallback;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_scanner);
+
     }
 
     public void returnCode(View view) {
@@ -37,7 +47,10 @@ public class ScannerActivity extends AppCompatActivity {
         String message = editText.getText().toString();
         intent.putExtra(CODE_KEY, message);
         setResult(RESULT_OK, intent);
-        finish();
+
+        mCamera.setOneShotPreviewCallback(mPreviewCallback);
+
+        //finish();
     }
 
     @Override
@@ -67,6 +80,35 @@ public class ScannerActivity extends AppCompatActivity {
         mPreview = new CameraPreview(this, mCamera, cameraId);
         mFrameLayout = (FrameLayout) findViewById(R.id.camera_preview);
         mFrameLayout.addView(mPreview);
+
+        mPreviewCallback = new PreviewCallback() {
+            @Override
+            public void onPreviewFrame(byte[] data, Camera camera) {
+                Camera.Size previewSize = camera.getParameters().getPreviewSize();
+                PlanarYUVLuminanceSource source = new PlanarYUVLuminanceSource(
+                        data,
+                        previewSize.width, previewSize.height,
+                        0, 0,
+                        previewSize.width, previewSize.height,
+                        false);
+                Log.d("Got picture", previewSize.width + "x" + previewSize.height);
+                Map<DecodeHintType,Object> hints = new EnumMap<>(DecodeHintType.class);
+                hints.put(DecodeHintType.TRY_HARDER, true);
+                BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
+                MultiFormatReader reader = new MultiFormatReader();
+                Result result;
+                try {
+                    //result = reader.decode(bitmap);
+                    result = reader.decode(bitmap, hints);
+                    Log.d("Result", result.getText());
+                } catch (ReaderException re) {
+                    Log.d("Exception", "no result");
+                    System.err.println(re);
+                }
+
+                finish();
+            }
+        };
     }
 
     @Override
@@ -79,6 +121,8 @@ public class ScannerActivity extends AppCompatActivity {
 
         mFrameLayout.removeView(mPreview);
         mPreview = null;
+
+        mPreviewCallback = null;
     }
 
 }

@@ -98,9 +98,12 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         final int width = resolveSize(getSuggestedMinimumWidth(), widthMeasureSpec);
         final int height = resolveSize(getSuggestedMinimumHeight(), heightMeasureSpec);
 
+        Log.d("onMeasure", width+"x"+height);
+
         if (mSupportedPreviewSizes != null) {
             mPreviewSize = getOptimalPreviewSize(mSupportedPreviewSizes, width, height);
         }
+        Log.d("onMeasure", mPreviewSize.width+"x"+mPreviewSize.height);
 
         if (mPreviewSize!=null) {
             float ratio;
@@ -111,6 +114,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
             // One of these methods should be used, second method squishes preview slightly
             setMeasuredDimension(width, (int) (width * ratio));
+            Log.d("onMeasure", width+"x"+(int)(width*ratio));
             //setMeasuredDimension((int) (width * ratio), height);
         }
     }
