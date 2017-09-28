@@ -42,11 +42,11 @@ public class ScannerActivity extends AppCompatActivity {
     }
 
     public void returnCode(View view) {
-        Intent intent = new Intent();
-        EditText editText = (EditText) findViewById(R.id.editText2);
-        String message = editText.getText().toString();
-        intent.putExtra(CODE_KEY, message);
-        setResult(RESULT_OK, intent);
+        //Intent intent = new Intent();
+        //EditText editText = (EditText) findViewById(R.id.editText2);
+        //String message = editText.getText().toString();
+        //intent.putExtra(CODE_KEY, message);
+        //setResult(RESULT_OK, intent);
 
         mCamera.setOneShotPreviewCallback(mPreviewCallback);
 
@@ -97,14 +97,21 @@ public class ScannerActivity extends AppCompatActivity {
                 BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
                 MultiFormatReader reader = new MultiFormatReader();
                 Result result;
+                String message;
                 try {
                     //result = reader.decode(bitmap);
                     result = reader.decode(bitmap, hints);
+                    message = result.getText();
                     Log.d("Result", result.getText());
                 } catch (ReaderException re) {
+                    message = "Not found";
                     Log.d("Exception", "no result");
                     System.err.println(re);
                 }
+
+                Intent intent = new Intent();
+                intent.putExtra(CODE_KEY, message);
+                setResult(RESULT_OK, intent);
 
                 finish();
             }
