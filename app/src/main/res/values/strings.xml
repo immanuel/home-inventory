@@ -3,4 +3,7 @@
     <string name="scan">Scan</string>
     <string name="send_code">Send Code</string>
     <string name="scan_message">Click Scan to start</string>
+    <string name="add_items">Add Items</string>
+    <string name="scan_error">Unidentified object in scanning area</string>
+    <string name="scan_success">Identified:</string>
 </resources>

@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.support.design.widget.Snackbar;
 
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.DecodeHintType;
@@ -23,10 +24,14 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
+import static android.R.attr.duration;
+
 @SuppressWarnings("deprecation")
 public class ScannerActivity extends AppCompatActivity {
 
     public static final String CODE_KEY = "com.immanuel.homeinventory.CODE";
+
+    private InventoryDBHelper mInventoryDBHelper;
 
     private int cameraId;
     private Camera mCamera;
@@ -39,6 +44,17 @@ public class ScannerActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_scanner);
 
+        if(mInventoryDBHelper == null) {
+            mInventoryDBHelper = new InventoryDBHelper(this);
+        }
+
+        mInventoryDBHelper.openDB();
+    }
+
+    @Override
+    protected void onDestroy() {
+        mInventoryDBHelper.closeDB();
+        super.onDestroy();
     }
 
     public void returnCode(View view) {
@@ -97,23 +113,37 @@ public class ScannerActivity extends AppCompatActivity {
                 BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
                 MultiFormatReader reader = new MultiFormatReader();
                 Result result;
-                String message;
                 try {
                     //result = reader.decode(bitmap);
+                    String message;
                     result = reader.decode(bitmap, hints);
                     message = result.getText();
-                    Log.d("Result", result.getText());
+                    Log.d("Result", message);
+
+                    String itemName = mInventoryDBHelper.getItemName(message);
+                    if(itemName == null){
+                        // Show dialog to ask for name
+                        Snackbar.make(findViewById(R.id.scanner_coordinator_layout), message, Snackbar.LENGTH_SHORT)
+                                .show();
+                    }
+                    else{
+                        Snackbar.make(findViewById(R.id.scanner_coordinator_layout), R.string.scan_success + itemName, Snackbar.LENGTH_SHORT)
+                                .show();
+                    }
+
                 } catch (ReaderException re) {
-                    message = "Not found";
                     Log.d("Exception", "no result");
+                    Snackbar.make(findViewById(R.id.scanner_coordinator_layout), R.string.scan_error, Snackbar.LENGTH_SHORT)
+                            .show();
                     System.err.println(re);
                 }
 
-                Intent intent = new Intent();
-                intent.putExtra(CODE_KEY, message);
-                setResult(RESULT_OK, intent);
 
-                finish();
+                // Intent intent = new Intent();
+                // intent.putExtra(CODE_KEY, message);
+                // setResult(RESULT_OK, intent);
+
+                //finish();
             }
         };
     }
