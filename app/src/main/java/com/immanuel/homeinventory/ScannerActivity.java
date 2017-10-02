@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
 import android.hardware.Camera.PreviewCallback;
+import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -27,7 +28,7 @@ import java.util.Map;
 import static android.R.attr.duration;
 
 @SuppressWarnings("deprecation")
-public class ScannerActivity extends AppCompatActivity {
+public class ScannerActivity extends AppCompatActivity implements AddNewItemDialogFragment.AddNewItemDialogListener{
 
     public static final String CODE_KEY = "com.immanuel.homeinventory.CODE";
 
@@ -123,11 +124,21 @@ public class ScannerActivity extends AppCompatActivity {
                     String itemName = mInventoryDBHelper.getItemName(message);
                     if(itemName == null){
                         // Show dialog to ask for name
+                        DialogFragment newItemDialog = new AddNewItemDialogFragment();
+                        // Supply new item ID as an argument.
+                        Bundle args = new Bundle();
+                        args.putString("newItemID", message);
+                        newItemDialog.setArguments(args);
+                        newItemDialog.show(getSupportFragmentManager(), "new_item_dialog_fragmen");
+
                         Snackbar.make(findViewById(R.id.scanner_coordinator_layout), message, Snackbar.LENGTH_SHORT)
                                 .show();
                     }
                     else{
-                        Snackbar.make(findViewById(R.id.scanner_coordinator_layout), R.string.scan_success + itemName, Snackbar.LENGTH_SHORT)
+                        Snackbar.make(
+                                findViewById(R.id.scanner_coordinator_layout),
+                                getResources().getString(R.string.scan_success, itemName),
+                                Snackbar.LENGTH_SHORT)
                                 .show();
                     }
 
@@ -146,6 +157,10 @@ public class ScannerActivity extends AppCompatActivity {
                 //finish();
             }
         };
+    }
+
+    public void onDialogAddClick(String newItemID, String newItemName){
+        mInventoryDBHelper.addNewItem(newItemID, newItemName);
     }
 
     @Override

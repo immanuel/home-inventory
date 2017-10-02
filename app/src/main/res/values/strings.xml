@@ -5,5 +5,9 @@
     <string name="scan_message">Click Scan to start</string>
     <string name="add_items">Add Items</string>
     <string name="scan_error">Unidentified object in scanning area</string>
-    <string name="scan_success">Identified:</string>
+    <string name="scan_success">Identified %1$s</string>
+    <string name="dialog_add_item_title">Add New Item</string>
+    <string name="add">Add</string>
+    <string name="cancel">Cancel</string>
+    <string name="add_item_message">Add name for item ID: %1$s</string>
 </resources>

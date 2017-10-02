@@ -64,7 +64,6 @@ public class InventoryDBHelper extends SQLiteOpenHelper {
 
         // Inserting Row
         db.insert(TABLE_ITEMS, null, values);
-        db.close(); // Closing database connection
     }
 
     public String getItemName(String itemID) {
