@@ -135,6 +135,7 @@ public class ScannerActivity extends AppCompatActivity implements AddNewItemDial
                                 .show();
                     }
                     else{
+                        mInventoryDBHelper.addItem(message);
                         Snackbar.make(
                                 findViewById(R.id.scanner_coordinator_layout),
                                 getResources().getString(R.string.scan_success, itemName),
@@ -161,6 +162,7 @@ public class ScannerActivity extends AppCompatActivity implements AddNewItemDial
 
     public void onDialogAddClick(String newItemID, String newItemName){
         mInventoryDBHelper.addNewItem(newItemID, newItemName);
+        mInventoryDBHelper.addItem(newItemID);
     }
 
     @Override

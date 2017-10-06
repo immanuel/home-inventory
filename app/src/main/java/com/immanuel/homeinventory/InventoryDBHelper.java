@@ -14,7 +14,7 @@ import java.util.Calendar;
 
 public class InventoryDBHelper extends SQLiteOpenHelper {
     // If you change the database schema, you must increment the database version.
-    public static final int DATABASE_VERSION = 2;
+    public static final int DATABASE_VERSION = 3;
     public static final String DATABASE_NAME = "Inventory.db";
 
     public static final String TABLE_ITEMS = "items";
@@ -49,6 +49,7 @@ public class InventoryDBHelper extends SQLiteOpenHelper {
                 + COL_REMOVED + " INTEGER"
                 + ")";
         db.execSQL(CREATE_ITEMS_TABLE);
+        db.execSQL(CREATE_INVENTORY_TABLE);
     }
 
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
@@ -129,6 +130,8 @@ public class InventoryDBHelper extends SQLiteOpenHelper {
         // Inserting Row
         db.insert(TABLE_INVENTORY, null, values);
 
+        // TODO: return success metric
+
     }
 
     public int removeItem(String itemID, boolean fifo) {
@@ -173,5 +176,26 @@ public class InventoryDBHelper extends SQLiteOpenHelper {
         }
 
         return 0;
+    }
+
+    public Cursor getAvailableItems() {
+        //TODO: check if db is null
+        // Define a projection that specifies which columns from the database
+        // you will actually use after this query.
+
+        String query = "SELECT " +
+                    TABLE_INVENTORY + "." + COL_ROWID + " _id, " +
+                    COL_ITEM_NAME + " " +
+                " FROM " + TABLE_INVENTORY +
+                " JOIN " + TABLE_ITEMS  +
+                " ON " + COL_INVENTORY_ITEM_ID + "=" + COL_ITEM_ID +
+                " WHERE " + COL_IS_AVAILABLE + " = 1";
+
+
+
+        Cursor cursor = db.rawQuery(query, null);
+
+        return cursor;
+
     }
 }

@@ -1,6 +1,8 @@
 package com.immanuel.homeinventory;
 
 import android.content.Intent;
+import android.database.Cursor;
+import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -9,9 +11,13 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
+
+    private InventoryDBHelper mInventoryDBHelper;
+    private SimpleCursorAdapter mCursorAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,8 +27,48 @@ public class MainActivity extends AppCompatActivity {
         Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
         setSupportActionBar(myToolbar);
 
+        if(mInventoryDBHelper == null) {
+            mInventoryDBHelper = new InventoryDBHelper(this);
+        }
+
+        mInventoryDBHelper.openDB();
+
+        Cursor cursor = mInventoryDBHelper.getAvailableItems();
+        // The desired columns to be bound
+        String[] columns = new String[] {
+                mInventoryDBHelper.COL_ITEM_NAME
+        };
+        // the XML defined views which the data will be bound to
+        int[] to = new int[] {
+                R.id.textViewItemName
+        };
+        // create the adapter using the cursor pointing to the desired data
+        //as well as the layout information
+        mCursorAdapter = new SimpleCursorAdapter(
+                this, R.layout.item_layout,
+                cursor,
+                columns,
+                to,
+                0);
+        ListView listView = (ListView) findViewById(R.id.itemListView);
+        // Assign adapter to ListView
+        listView.setAdapter(mCursorAdapter);
     }
 
+    @Override
+    protected void onDestroy() {
+        mInventoryDBHelper.closeDB();
+        super.onDestroy();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        Cursor cursor = mInventoryDBHelper.getAvailableItems();
+        mCursorAdapter.changeCursor(cursor);
+
+    }
 
     public void startScanner(View view) {
         Intent intent = new Intent(this, ScannerActivity.class);
