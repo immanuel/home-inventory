@@ -7,7 +7,11 @@ import android.hardware.Camera.PreviewCallback;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.FrameLayout;
@@ -51,6 +55,9 @@ public class ScannerActivity extends AppCompatActivity implements AddNewItemDial
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_scanner);
+
+        Toolbar myToolbar = (Toolbar) findViewById(R.id.scanner_toolbar);
+        setSupportActionBar(myToolbar);
 
         scannerMode = getIntent().getIntExtra("SCANNER_MODE", MODE_ADD);
 
@@ -217,6 +224,32 @@ public class ScannerActivity extends AppCompatActivity implements AddNewItemDial
         if(recentlyRemovedItemID > 0){
             mInventoryDBHelper.undoRemoval(recentlyRemovedItemID);
             recentlyRemovedItemID = -1;
+        }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.main_activity_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.add_items:
+                scannerMode = MODE_ADD;
+                return true;
+
+            case R.id.remove_items:
+                scannerMode = MODE_REMOVE;
+                return true;
+
+            default:
+                // If we got here, the user's action was not recognized.
+                // Invoke the superclass to handle it.
+                return super.onOptionsItemSelected(item);
+
         }
     }
 }
