@@ -4,8 +4,12 @@
     <string name="send_code">Send Code</string>
     <string name="scan_message">Click Scan to start</string>
     <string name="add_items">Add Items</string>
+    <string name="remove_items">Remove Items</string>
     <string name="scan_error">Unidentified object in scanning area</string>
     <string name="scan_success">Added %1$s</string>
+    <string name="remove_success">Removed %1$s</string>
+    <string name="undo">Undo</string>
+    <string name="remove_failure">%1$s not in inventory</string>
     <string name="dialog_add_item_title">Add New Item</string>
     <string name="add">Add</string>
     <string name="cancel">Cancel</string>

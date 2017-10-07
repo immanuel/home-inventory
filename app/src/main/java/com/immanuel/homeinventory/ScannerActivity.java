@@ -28,9 +28,12 @@ import java.util.Map;
 import static android.R.attr.duration;
 
 @SuppressWarnings("deprecation")
-public class ScannerActivity extends AppCompatActivity implements AddNewItemDialogFragment.AddNewItemDialogListener{
+public class ScannerActivity extends AppCompatActivity implements AddNewItemDialogFragment.AddNewItemDialogListener, View.OnClickListener{
 
     public static final String CODE_KEY = "com.immanuel.homeinventory.CODE";
+    // TODO: convert to enum and constants class
+    private static final int MODE_ADD = 0;
+    private static final int MODE_REMOVE = 1;
 
     private InventoryDBHelper mInventoryDBHelper;
 
@@ -40,10 +43,16 @@ public class ScannerActivity extends AppCompatActivity implements AddNewItemDial
     private FrameLayout mFrameLayout;
     private PreviewCallback mPreviewCallback;
 
+    private int scannerMode;
+    private long recentlyRemovedItemID;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_scanner);
+
+        scannerMode = getIntent().getIntExtra("SCANNER_MODE", MODE_ADD);
 
         if(mInventoryDBHelper == null) {
             mInventoryDBHelper = new InventoryDBHelper(this);
@@ -129,18 +138,38 @@ public class ScannerActivity extends AppCompatActivity implements AddNewItemDial
                         Bundle args = new Bundle();
                         args.putString("newItemID", message);
                         newItemDialog.setArguments(args);
-                        newItemDialog.show(getSupportFragmentManager(), "new_item_dialog_fragmen");
+                        newItemDialog.show(getSupportFragmentManager(), "new_item_dialog_fragment");
 
-                        Snackbar.make(findViewById(R.id.scanner_coordinator_layout), message, Snackbar.LENGTH_SHORT)
-                                .show();
                     }
                     else{
-                        mInventoryDBHelper.addItem(message);
-                        Snackbar.make(
-                                findViewById(R.id.scanner_coordinator_layout),
-                                getResources().getString(R.string.scan_success, itemName),
-                                Snackbar.LENGTH_SHORT)
-                                .show();
+                        if(scannerMode == MODE_ADD) {
+                            mInventoryDBHelper.addItem(message);
+                            Snackbar.make(
+                                    findViewById(R.id.scanner_coordinator_layout),
+                                    getResources().getString(R.string.scan_success, itemName),
+                                    Snackbar.LENGTH_SHORT)
+                                    .show();
+                        }
+                        else if(scannerMode == MODE_REMOVE) {
+                            long removedItemID = mInventoryDBHelper.removeItem(message, true);
+                            if(removedItemID > 0){
+                                //Show message with undo button
+                                recentlyRemovedItemID = removedItemID;
+                                Snackbar.make(
+                                        findViewById(R.id.scanner_coordinator_layout),
+                                        getResources().getString(R.string.remove_success, itemName),
+                                        Snackbar.LENGTH_SHORT)
+                                        .setAction(R.string.undo, ScannerActivity.this)
+                                        .show();
+                            }
+                            else{
+                                Snackbar.make(
+                                        findViewById(R.id.scanner_coordinator_layout),
+                                        getResources().getString(R.string.remove_failure, itemName),
+                                        Snackbar.LENGTH_SHORT)
+                                        .show();
+                            }
+                        }
                     }
 
                 } catch (ReaderException re) {
@@ -150,19 +179,21 @@ public class ScannerActivity extends AppCompatActivity implements AddNewItemDial
                     System.err.println(re);
                 }
 
-
-                // Intent intent = new Intent();
-                // intent.putExtra(CODE_KEY, message);
-                // setResult(RESULT_OK, intent);
-
-                //finish();
             }
         };
     }
 
     public void onDialogAddClick(String newItemID, String newItemName){
         mInventoryDBHelper.addNewItem(newItemID, newItemName);
-        mInventoryDBHelper.addItem(newItemID);
+
+        if(scannerMode == MODE_ADD) {
+            mInventoryDBHelper.addItem(newItemID);
+            Snackbar.make(
+                    findViewById(R.id.scanner_coordinator_layout),
+                    getResources().getString(R.string.scan_success, newItemName),
+                    Snackbar.LENGTH_SHORT)
+                    .show();
+        }
     }
 
     @Override
@@ -179,4 +210,13 @@ public class ScannerActivity extends AppCompatActivity implements AddNewItemDial
         mPreviewCallback = null;
     }
 
+    @Override
+    public void onClick(View v) {
+        // Code to undo the user's last action
+
+        if(recentlyRemovedItemID > 0){
+            mInventoryDBHelper.undoRemoval(recentlyRemovedItemID);
+            recentlyRemovedItemID = -1;
+        }
+    }
 }

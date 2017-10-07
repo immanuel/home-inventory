@@ -70,11 +70,6 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void startScanner(View view) {
-        Intent intent = new Intent(this, ScannerActivity.class);
-        startActivityForResult(intent, 1);
-    }
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
@@ -84,10 +79,17 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        Intent scannerIntent;
+        scannerIntent = new Intent(this, ScannerActivity.class);
         switch (item.getItemId()) {
             case R.id.add_items:
-                Intent intent = new Intent(this, ScannerActivity.class);
-                startActivity(intent);
+                scannerIntent.putExtra("SCANNER_MODE", 0);
+                startActivity(scannerIntent);
+                return true;
+
+            case R.id.remove_items:
+                scannerIntent.putExtra("SCANNER_MODE", 1);
+                startActivity(scannerIntent);
                 return true;
 
             default:
@@ -104,10 +106,6 @@ public class MainActivity extends AppCompatActivity {
             if(resultCode == RESULT_OK) {
                 // Get the Intent that started this activity and extract the string
                 String message = data.getStringExtra(ScannerActivity.CODE_KEY);
-
-                // Capture the layout's TextView and set the string as its text
-                TextView textView = (TextView) findViewById(R.id.textView);
-                textView.setText(message);
             }
         }
     }

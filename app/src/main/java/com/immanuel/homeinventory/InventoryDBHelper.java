@@ -134,7 +134,7 @@ public class InventoryDBHelper extends SQLiteOpenHelper {
 
     }
 
-    public int removeItem(String itemID, boolean fifo) {
+    public long removeItem(String itemID, boolean fifo) {
         // Identify the row to delete
 
         // Define a projection that specifies which columns from the database
@@ -171,11 +171,38 @@ public class InventoryDBHelper extends SQLiteOpenHelper {
                     cursor.getColumnIndexOrThrow(COL_ROWID)
             );
 
-            String[] deletionArgs = {Long.toString(rowID)};
-            return db.delete(TABLE_INVENTORY, COL_ROWID + " = ?", deletionArgs);
+            //String[] deletionArgs = {Long.toString(rowID)};
+            //db.delete(TABLE_INVENTORY, COL_ROWID + " = ?", deletionArgs);
+
+            ContentValues newValues = new ContentValues();
+            newValues.put(COL_IS_AVAILABLE, 0);
+            newValues.put(COL_REMOVED, Calendar.getInstance().getTimeInMillis());
+            String[] updateArgs = {Long.toString(rowID)};
+            db.update(
+                    TABLE_INVENTORY,
+                    newValues,
+                    COL_ROWID + " = ? ",
+                    updateArgs
+            );
+
+            return rowID;
         }
 
-        return 0;
+        return -1;
+    }
+
+    public void undoRemoval(long rowID){
+        // TODO: check if db is open
+
+        ContentValues newValues = new ContentValues();
+        newValues.put(COL_IS_AVAILABLE, 1);
+        String[] updateArgs = {Long.toString(rowID)};
+        db.update(
+                TABLE_INVENTORY,
+                newValues,
+                COL_ROWID + " = ? ",
+                updateArgs
+        );
     }
 
     public Cursor getAvailableItems() {
